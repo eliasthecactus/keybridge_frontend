@@ -1,0 +1,17 @@
+services:
+  keybridge-frontend:
+    build:
+      context: .
+      args:
+      # The address on which you are going to access the api service from outside. 
+        API_URL: http://keybridge-api:5000
+    # Optionally, recommended: If the nginx should also be used as a reverse proxy for the api. it has to be accessible from the nginx container then.
+    environment:
+      - API_URL=http://keybirdge-api
+      - API_PORT=5000
+    image: keybridge-frontend:latest
+    container_name: keybridge-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always

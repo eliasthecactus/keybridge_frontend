@@ -1,0 +1,306 @@
+<div class="tw-flex tw-flex-col tw-gap-4">
+  <h1>Settings</h1>
+
+  <p-card>
+    <ng-template #title>
+      <div class="tw-flex tw-items-center tw-justify-between">
+        <div class="tw-flex tw-itmes-center tw-gap-2">
+          <p>Licensing</p>
+          <div class="tw-flex tw-items-center">
+            <!-- <p-tag severity="success" value="Active" />
+            <p-tag severity="warn" value="Warning" /> -->
+            <p-tag severity="danger" value="Inactive" />
+
+          </div>
+        </div>
+        <p-button icon="pi pi-refresh" />
+        <!-- <p-button label="Recheck" icon="pi pi-refresh" /> -->
+
+      </div>
+    </ng-template>
+
+    <p-inputgroup>
+      <input [(ngModel)]="licenseKey" pInputText placeholder="8b3579bd-21e1-439e-903f-47e8789bb247" />
+      <p-inputgroup-addon>
+        <p-button icon="pi pi-plus" severity="secondary" variant="text" (click)="addLicenseKey(licenseKey)" />
+      </p-inputgroup-addon>
+    </p-inputgroup>
+
+
+  </p-card>
+
+  <p-card header="Admin">
+    <div class="tw-p-4 tw-space-y-6">
+      <div class="tw-flex tw-flex-col tw-gap-4">
+        <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6">
+
+          <div class="tw-flex tw-flex-col tw-gap-1">
+            <label for="op" class="tw-font-medium">Old Password</label>
+            <p-password id="cnp" [feedback]="false" [inputStyle]="{'width':'100%'}" [style]="{'width':'100%'}"
+              [(ngModel)]="oldPassword" />
+
+          </div>
+
+
+          <div class="tw-flex tw-flex-col tw-gap-1">
+            <label for="np" class="tw-font-medium">New Password</label>
+            <p-password id="np" [inputStyle]="{'width':'100%'}" [style]="{'width':'100%'}" [(ngModel)]="newPassword" />
+
+          </div>
+
+
+          <div class="tw-flex tw-flex-col tw-gap-1">
+            <label for="cnp" class="tw-font-medium">Confirm new password</label>
+            <p-password id="cnp" [feedback]="false" [inputStyle]="{'width':'100%'}" [style]="{'width':'100%'}"
+              [(ngModel)]="confirmNewPassword" />
+          </div>
+
+
+        </div>
+
+
+        <div class="tw-flex tw-justify-end">
+          <button (click)="changePassword()"
+            [disabled]="newPassword.length < 8 || newPassword != confirmNewPassword || oldPassword.length < 8"
+            pButton>Change</button>
+        </div>
+
+        <!-- <p-divider /> -->
+
+      </div>
+    </div>
+  </p-card>
+
+  <p-card header="Syslog Server">
+    <div class="tw-p-4 tw-space-y-6">
+      <!-- Grid Layout for Inputs -->
+      <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 tw-gap-6">
+        <!-- Name Input -->
+        <!-- <div class="tw-flex tw-flex-col tw-gap-1">
+            <label for="syslogServerName" class="tw-font-medium">Name</label>
+            <input
+              id="syslogServerName"
+              type="text"
+              pInputText
+              *ngIf="syslogServer"
+              [(ngModel)]="syslogServer.name"
+              class="tw-w-full"
+            />
+          </div> -->
+
+        <!-- Host Input -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="syslogServerHost" class="tw-font-medium">Host</label>
+          <input id="syslogServerHost" type="text" pInputText *ngIf="syslogServer" [(ngModel)]="syslogServer.host"
+            class="tw-w-full" />
+        </div>
+
+        <!-- Grid Layout for Port and Protocol -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="syslogServerPort" class="tw-font-medium">Port</label>
+          <input id="syslogServerPort" type="number" pInputText *ngIf="syslogServer" [(ngModel)]="syslogServer.port"
+            class="tw-w-full" />
+        </div>
+
+        <!-- Disabled -->
+        <div class="tw-flex tw-items-end tw-gap-2">
+          <p-checkbox *ngIf="syslogServer" id="twoFaSsl" [(ngModel)]="syslogServer.disabled" binary="true"></p-checkbox>
+          <label for="twoFaSsl" class="tw-font-medium">Disabled</label>
+        </div>
+
+
+        <!-- <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="protocol" class="tw-font-medium">Protocol</label>
+          <p-select *ngIf="syslogServer" [options]="syslogProtocols" [(ngModel)]="syslogServer.protocol"
+            optionValue="value" optionLabel="name" placeholder="Select a protocol" />
+        </div> -->
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="tw-flex tw-justify-end tw-space-x-2">
+        <button *ngIf="this.syslogServer && this.syslogServer!.id != -1" pButton icon="pi pi-trash" severity="danger"
+          (click)="deleteSyslogServer()" class="tw-w-auto sm:tw-w-auto tw-px-2"></button>
+        <!-- <button pButton label="Test" class="p-button-secondary tw-w-auto sm:tw-w-auto" (click)="testSyslogServer()"></button> -->
+        <button [disabled]="!syslogServerEdited()" pButton label="Save" icon="pi pi-save" (click)="saveSyslogServer()"
+          class="tw-w-auto sm:tw-w-auto"></button>
+      </div>
+    </div>
+  </p-card>
+
+
+  <p-card header="SMTP Server">
+    <div class="tw-p-4 tw-space-y-6">
+      <!-- Grid Layout for Inputs -->
+      <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-6">
+        <!-- Name Input -->
+        <!-- <div class="tw-flex tw-flex-col tw-gap-1">
+            <label for="smtpServerName" class="tw-font-medium">Name</label>
+            <input
+              id="smtpServerName"
+              type="text"
+              pInputText
+              *ngIf="smtpServer"
+              [(ngModel)]="smtpServer.name"
+              class="tw-w-full"
+            />
+          </div> -->
+
+        <!-- Host Input -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="smtpServerHost" class="tw-font-medium">Host</label>
+          <input id="smtpServerHost" type="text" pInputText *ngIf="smtpServer" [(ngModel)]="smtpServer.host"
+            class="tw-w-full" />
+        </div>
+
+        <!-- Grid Layout for Port and Protocol -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="smtpServerPort" class="tw-font-medium">Port</label>
+          <input id="smtpServerPort" type="number" pInputText *ngIf="smtpServer" [(ngModel)]="smtpServer.port"
+            class="tw-w-full" />
+        </div>
+
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="smtpServerUsername" class="tw-font-medium">Username</label>
+          <input id="smtpServerUsername" type="text" pInputText *ngIf="smtpServer" [(ngModel)]="smtpServer.username"
+            class="tw-w-full" />
+        </div>
+
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="smtpServerPort" class="tw-font-medium">Password</label>
+          <p-password [style]="{'width':'100%'}" [inputStyle]="{'width':'100%'}" id="smtpServerPort" *ngIf="smtpServer"
+            [(ngModel)]="smtpServer.password" class="tw-w-full" [toggleMask]="true" [feedback]="false" />
+        </div>
+
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="smtpServerPort" class="tw-font-medium">From Email</label>
+          <input id="smtpServerPort" type="text" pInputText *ngIf="smtpServer" [(ngModel)]="smtpServer.from_email"
+            class="tw-w-full" />
+        </div>
+
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="protocol" class="tw-font-medium">Security</label>
+          <p-select *ngIf="smtpServer" [options]="smtpSecurity" [(ngModel)]="smtpServer.security" optionValue="value"
+            optionLabel="name" placeholder="Select a option" />
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="tw-flex tw-justify-end tw-space-x-2">
+        <button *ngIf="this.smtpServer && this.smtpServer!.id != -1" pButton icon="pi pi-trash" severity="danger"
+          (click)="deleteSmtpServer()" class="tw-w-auto sm:tw-w-auto tw-px-2"></button>
+        <button pButton [disabled]="smtpServerEdited()" label="Test" class="p-button-secondary tw-w-auto sm:tw-w-auto"
+          (click)="showEmailSendToTestDialog = true"></button>
+        <button [disabled]="!smtpServerEdited()" pButton label="Save" icon="pi pi-save" (click)="saveSmtpServer()"
+          class="tw-w-auto sm:tw-w-auto"></button>
+      </div>
+    </div>
+  </p-card>
+
+
+  <p-card header="Two Factor Authentication">
+    <div *ngIf="twoFaSource" class="tw-p-4 tw-space-y-6">
+      <!-- Grid Layout for Inputs -->
+      <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 tw-gap-6">
+
+        <!-- Name Input -->
+        <!-- <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="twoFaName" class="tw-font-medium">Name</label>
+          <input id="twoFaName" type="text" pInputText [(ngModel)]="twoFaSource.name"
+            class="tw-w-full" placeholder="Enter 2FA Source Name" />
+        </div> -->
+
+        <!-- Host Input -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="twoFaHost" class="tw-font-medium">Host</label>
+          <input id="twoFaHost" type="text" pInputText [(ngModel)]="twoFaSource.host" class="tw-w-full"
+            placeholder="Enter 2FA Server Host" />
+        </div>
+
+        <!-- Port Input -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="twoFaPort" class="tw-font-medium">Port</label>
+          <input id="twoFaPort" type="number" pInputText [(ngModel)]="twoFaSource.port" class="tw-w-full"
+            placeholder="Enter Port (Default: 443)" />
+        </div>
+
+        <!-- Type Dropdown -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="twoFaType" class="tw-font-medium">Type</label>
+          <p-select [options]="twoFaTypes" [(ngModel)]="twoFaSource.type" optionLabel="name" optionValue="value"
+            placeholder="Select a Type" class="w-full md:w-56" />
+        </div>
+
+
+        <!-- Realm Input -->
+        <div class="tw-flex tw-flex-col tw-gap-1">
+          <label for="twoFaRealm" class="tw-font-medium">Realm</label>
+          <input id="twoFaRealm" type="text" pInputText [(ngModel)]="twoFaSource.realm" class="tw-w-full"
+            placeholder="Enter realm" />
+        </div>
+
+        <!-- SSL Toggle -->
+        <div class="tw-flex tw-items-end tw-gap-2">
+          <p-checkbox id="twoFaSsl" [(ngModel)]="twoFaSource.ssl" binary="true"></p-checkbox>
+          <label for="twoFaSsl" class="tw-font-medium">Use SSL</label>
+        </div>
+
+        <!-- Disabled Toggle -->
+        <div class="tw-flex tw-items-center tw-gap-2">
+          <p-checkbox id="twoFaDisabled" [(ngModel)]="twoFaSource.disabled" binary="true"></p-checkbox>
+          <label for="twoFaDisabled" class="tw-font-medium">Disabled</label>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="tw-flex tw-justify-end tw-space-x-2">
+        <button *ngIf="this.twoFaSource && this.twoFaSource!.id != -1" pButton icon="pi pi-trash" severity="danger"
+          (click)="deleteTwoFaSource()" class="tw-w-auto sm:tw-w-auto tw-px-2"></button>
+        <button pButton [disabled]="twoFaSourceEdited() || this.twoFaSource!.id == -1" label="Test"
+          class="p-button-secondary tw-w-auto sm:tw-w-auto" (click)="showTwoFaTestDialog = true"></button>
+
+        <button [disabled]="!twoFaSourceEdited() || twoFaSource.host == '' || twoFaSource.realm == ''" pButton
+          label="Save" icon="pi pi-save" (click)="saveTwoFaSource()" class="tw-w-auto sm:tw-w-auto"></button>
+      </div>
+    </div>
+  </p-card>
+
+
+
+</div>
+
+<p-dialog header="Send test mail to..." [modal]="true" [(visible)]="showEmailSendToTestDialog">
+  <div class="tw-flex tw-flex-col tw-gap-4">
+    <div class="tw-flex tw-items-center tw-gap-4">
+      <label for="email" class="tw-font-semibold tw-w-24">Email</label>
+      <input pInputText [(ngModel)]="sendToEmail" id="email" class="flex-auto" autocomplete="off" />
+    </div>
+    <div class="tw-flex tw-justify-end tw-gap-2">
+      <p-button label="Cancel" severity="secondary" (click)="showEmailSendToTestDialog = false" />
+      <p-button label="Send" (click)="testSmtpServer()" [disabled]="sendToEmail == ''" />
+    </div>
+
+  </div>
+</p-dialog>
+
+<p-dialog header="Test 2FA" [modal]="true" [(visible)]="showTwoFaTestDialog">
+  <div class="tw-flex tw-flex-col tw-gap-4">
+    <div class="tw-flex tw-items-center tw-gap-4">
+      <label for="twofausername" class="tw-font-semibold tw-w-24">Username</label>
+      <input pInputText [(ngModel)]="twoFaTestUsername" id="twofausername" class="flex-auto" autocomplete="off" />
+    </div>
+    <div class="tw-flex tw-items-center tw-gap-4">
+      <label for="twofacode" class="tw-font-semibold tw-w-24">Code</label>
+      <input pInputText [(ngModel)]="twoFaTestCode" id="twofacode" class="flex-auto" autocomplete="off" />
+    </div>
+
+    <div class="tw-flex tw-justify-end tw-gap-2">
+      <p-button label="Cancel" severity="secondary" (click)="showTwoFaTestDialog = false" />
+      <p-button label="Send" (click)="testTwoFa()" [disabled]="twoFaTestUsername == '' || twoFaTestCode == ''" />
+    </div>
+
+  </div>
+</p-dialog>
+
+
+<p-toast></p-toast>

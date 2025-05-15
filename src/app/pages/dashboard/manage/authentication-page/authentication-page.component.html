@@ -1,0 +1,104 @@
+<div class="tw-flex tw-flex-col tw-gap-4">
+    <div class="tw-flex tw-items-center tw-justify-between">
+        <h1>Authentication Servers</h1>
+        <p-button icon="pi pi-plus" (click)="addServer()" />
+    </div>
+<p-table [value]="servers" [tableStyle]="{ 'min-width': '50rem' }">
+    <!-- <ng-template pTemplate="caption">
+        <div class="tw-flex tw-items-center tw-justify-end">
+            <p>Authentication Servers</p>
+            <p-button icon="pi pi-plus" (click)="addServer()" />
+        </div>
+    </ng-template> -->
+
+    <ng-template pTemplate="header">
+        <tr>
+            <th>Name</th>
+            <th>Host</th>
+            <th>Bind User</th>
+            <th>SSL</th>
+            <th>Edit</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-server>
+        <tr>
+            <!-- <td class="tw-whitespace-nowrap tw-text-nowrap tw-flex tw-flex-nowrap tw-items-center tw-gap-2"><p [ngStyle]="{color: 'var(--primary-color)'}">&#8226;</p> {{ server.name }}</td> -->
+            <td class="tw-whitespace-nowrap tw-text-nowrap">
+                <div class="tw-flex tw-items-center tw-gap-2 tw-h-full">
+                    <p-badge [styleClass]="availableServers.includes(server.id) ? 'p-badge-dot p-badge-success' : 'p-badge-dot p-badge-danger'" />
+                    {{ server.name }}
+                </div>
+            </td>
+            <td>{{ server.host }}</td>
+            <td class="">{{ server.bind_user_dn }}</td>
+            <td>
+                <i *ngIf="server.ssl" class="pi pi-check text-success"></i>
+                <i *ngIf="!server.ssl" class="pi pi-times text-danger"></i>
+            </td>
+            <td>
+                <button pButton pRipple type="button" icon="pi pi-pencil" (click)="editServer(server)"
+                    class="p-button-sm p-button-text">
+                </button>
+
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+</div>
+
+<p-toast></p-toast>
+<p-drawer [(visible)]="showSideBar" position="right">
+    <h3>{{this.selectedServer && this.selectedServer!.id == -1 ? 'Add' : 'Edit'}} Server</h3>
+    <div class="tw-p-4 tw-space-y-4">
+        <div class="tw-flex tw-flex-col">
+            <label for="serverType" class="tw-font-medium">Type</label>
+            <p-select 
+            *ngIf="selectedServer" 
+            id="serverType" 
+            [options]="serverTypes" 
+            [(ngModel)]="selectedServer.server_type" 
+            optionLabel="label" 
+            optionValue="value" 
+            placeholder="Select a Type">
+        </p-select>
+            </div>
+
+        <div class="tw-flex tw-flex-col">
+            <label for="serverName" class="tw-font-medium">Name</label>
+            <input id="serverName" type="text" pInputText *ngIf="selectedServer" [(ngModel)]="selectedServer.name" />
+        </div>
+        <div class="tw-flex tw-flex-col">
+            <label for="serverHost" class="tw-font-medium">Host</label>
+            <input id="serverHost" type="text" pInputText *ngIf="selectedServer" [(ngModel)]="selectedServer.host" />
+        </div>
+        <div class="tw-flex tw-flex-col">
+            <label for="serverHost" class="tw-font-medium">Port</label>
+            <input id="serverPort" type="number" pInputText *ngIf="selectedServer" [(ngModel)]="selectedServer.port" />
+        </div>
+        <div class="tw-flex tw-flex-col">
+            <label for="baseDn" class="tw-font-medium">Base DN</label>
+            <input id="baseDn" type="text" pInputText *ngIf="selectedServer"
+                [(ngModel)]="selectedServer.base_dn" />
+        </div>
+        <div class="tw-flex tw-flex-col">
+            <label for="bindUserDn" class="tw-font-medium">Bind User DN</label>
+            <input id="bindUserDn" type="text" pInputText *ngIf="selectedServer"
+                [(ngModel)]="selectedServer.bind_user_dn" />
+        </div>
+        <div class="tw-flex tw-flex-col">
+            <label for="bindUserPassword" class="tw-font-medium">Bind User Password</label>
+            <p-password [inputStyle]="{'width':'100%'}" [style]="{'width':'100%'}" id="bindPassword"
+                *ngIf="selectedServer" [(ngModel)]="selectedServer.bind_password" [feedback]="false"
+                [toggleMask]="true" />
+        </div>
+        <div class="tw-flex tw-gap-2">
+            <label for="ssl" class="tw-font-medium">SSL</label>
+            <p-checkbox *ngIf="selectedServer" [(ngModel)]="selectedServer.ssl" [binary]="true" inputId="binary" />
+        </div>
+        <div class="tw-flex tw-justify-end tw-space-x-2">
+            <button *ngIf="this.selectedServer && this.selectedServer!.id != -1" pButton icon="pi pi-trash" severity="danger" (click)="deleteAuthSource()"></button>
+            <button pButton label="Test" class="p-button-secondary" (click)="testAuthSource()"></button>
+            <button pButton label="Save" icon="pi pi-save" (click)="saveServer()"></button>
+        </div>
+    </div>
+</p-drawer>

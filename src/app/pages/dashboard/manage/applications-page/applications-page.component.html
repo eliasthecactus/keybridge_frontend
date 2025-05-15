@@ -1,0 +1,54 @@
+<div class="tw-flex tw-flex-col tw-gap-4">
+    <div class="tw-flex tw-items-center tw-justify-between">
+        <h1>Applications</h1>
+        <p-button icon="pi pi-plus" (click)="addApplication()" />
+    </div>
+
+    <p-table [loading]="loadingApplications" [value]="apps">
+        <!-- <ng-template pTemplate="caption">
+            <div class="tw-flex tw-items-center tw-justify-end">
+                <p>Applications</p>
+                <p-button icon="pi pi-plus" (click)="addApplication()" />
+            </div>
+        </ng-template> -->
+    
+        <ng-template pTemplate="header">
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Path</th>
+                <th>Check hash</th>
+                <th>Multiple instances</th>
+                <th>Edit</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-app>
+            <tr>
+                <td>
+                    <p-avatar *ngIf="!app.image" [label]="getAvatarString(app.name, 2)" styleClass="mr-2" />
+                    <p-avatar [style.border-radius]="'5px'" [style.overflow]="'hidden'" *ngIf="app.image" [image]="'data:image/png;base64, '+app.image" styleClass="mr-2" />
+                </td>
+                <td class="tw-max-w-40 tw-truncate" [title]="app.name">{{ app.name }}</td>
+                <td>{{ app.path.join(' | ') }}</td>
+                <td>
+                    <i *ngIf="app.check_hash" class="pi pi-check text-success"></i>
+                    <i *ngIf="!app.check_hash" class="pi pi-times text-danger"></i>
+                </td>
+    
+                <td>
+                    <i *ngIf="app.multiple_processes" class="pi pi-check text-success"></i>
+                    <i *ngIf="!app.multiple_processes" class="pi pi-times text-danger"></i>
+                </td>
+                <td>
+                    <button pButton pRipple type="button" icon="pi pi-pencil" (click)="editApplication(app)"
+                        class="p-button-sm p-button-text">
+                    </button>
+    
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+    
+</div>
+
+<p-toast></p-toast>

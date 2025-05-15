@@ -1,0 +1,152 @@
+name: Build and Release Angular App
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Angular App
+        run: npm run build
+
+      - name: Extract Version from package.json
+        id: package_version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          BUILD=$(git rev-parse --short HEAD)
+          FULL_VERSION="${VERSION}+${BUILD}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "FULL_VERSION=${FULL_VERSION}" >> $GITHUB_ENV
+          echo "BUILD=${BUILD}" >> $GITHUB_ENV
+          echo "Release version: ${VERSION}"
+          echo "Full release version: ${FULL_VERSION}"
+          echo "Build: ${BUILD}"
+          echo $VERSION > version.txt  # Save version for next job
+          echo $FULL_VERSION > full_version.txt  # Save version for next job
+          echo $BUILD > build.txt  # Save version for next job
+
+      - name: Upload Version File
+        uses: actions/upload-artifact@v4
+        with:
+          name: version
+          path: |
+            version.txt
+            full_version.txt
+            build.txt        
+
+      - name: Create ZIP Archive with Version
+        run: |
+          mkdir -p dist-zip
+          echo "==========="
+          ls
+          echo "==========="
+          ls dist/
+          echo "==========="
+          zip -r dist-zip/keybridge-frontend-v${FULL_VERSION}.zip dist/*
+          ls dist-zip/
+          echo "==========="
+          ls
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: keybridge-frontend
+          path: dist-zip/
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Version File
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+
+      - name: Read Version from File
+        run: |
+          echo "FULL_VERSION=$(cat full_version.txt)" >> $GITHUB_ENV
+          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+          echo "BUILD=$(cat build.txt)" >> $GITHUB_ENV
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: keybridge-frontend
+          path: dist-zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+            tag_name: v${{ env.FULL_VERSION }}
+            name: "KeyBridge Frontend v${{ env.FULL_VERSION }}"
+            body: "New release of KeyBridge Frontend!"
+            draft: false
+            prerelease: false
+            files: dist-zip/keybridge-frontend-v${{ env.FULL_VERSION }}.zip
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+          
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+          
+      - name: Download Version File
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+
+      - name: Read Version from File
+        run: |
+          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+          echo "FULL_VERSION=$(cat full_version.txt)" >> $GITHUB_ENV
+          echo "BUILD=$(cat build.txt)" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/keybridge-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/keybridge-frontend:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/keybridge-frontend:${{ env.BUILD }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/keybridge-frontend:latest
+          cache-to: type=inline
+
+      - name: Verify Image
+        run: |
+          docker pull ghcr.io/${{ github.repository_owner }}/keybridge-frontend:${{ env.VERSION }}
+          docker pull ghcr.io/${{ github.repository_owner }}/keybridge-frontend:${{ env.BUILD }}

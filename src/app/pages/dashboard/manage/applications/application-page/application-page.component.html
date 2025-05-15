@@ -1,0 +1,478 @@
+<div class="tw-flex tw-flex-col tw-gap-4" *ngIf="application">
+    <div class="tw-flex tw-items-center tw-justify-between">
+        <div class="tw-flex tw-items-center tw-gap-2">
+            <div class="tw-flex tw-items-center tw-gap-2">
+
+                <div class="tw-relative tw-flex tw-flex-col tw-justify-center tw-items-center">
+                    <input #fileInput type="file" accept="image/*" class="tw-hidden"
+                    (change)="uploadAppIcon($event)" multiple="false" />
+
+                    <p-avatar [ngClass]="{'tw-opacity-30': editApplicationName}" *ngIf="!application.image" [label]="getAvatarString(application.name, 2)" size="xlarge" />
+                    <p-avatar [style.border-radius]="'5px'" [style.overflow]="'hidden'" *ngIf="application.image" [image]="'data:image/png;base64, '+application.image" size="xlarge" />
+
+                    <div class="tw-absolute tw-flex tw-items-center tw-justify-center">
+
+                        <!-- <p-button *ngIf="!application.image" icon="pi pi-plus" [rounded]="true" [outlined]="true" size="small" /> -->
+                        <!-- <p-button (click)="triggerFileUpload()" [icon]="application.image ? 'pi pi-pencil' : 'pi pi-plus'" [rounded]="true" [outlined]="true" size="small"></p-button> -->
+
+                        <p-button (click)="triggerFileUpload()"  *ngIf="!application.image" [icon]="'pi pi-plus'" [rounded]="true" [outlined]="true" size="small" class="tw-opacity-0 hover:tw-opacity-100"></p-button>
+                        <p-button (click)="removeAppIcon()" *ngIf="application.image" icon="pi pi-trash" [rounded]="true" [outlined]="true" severity="danger" class="tw-opacity-0 hover:tw-opacity-100" />
+
+
+                    </div>
+
+                </div>
+
+                <p-divider layout="vertical"></p-divider>
+
+                <!-- <img *ngIf="application.image" class="tw-w-16 tw-rounded" [src]="'data:image/png;base64, '+application.image" alt="Icon"> -->
+                <div class="tw-max-w-prose">
+                    <h1 class="tw-truncate" *ngIf="!editApplicationName">{{application.name}}</h1>
+
+                </div>
+            </div>
+            <p-floatlabel *ngIf="editApplicationName" variant="in">
+                <input pInputText id="applicationName" [(ngModel)]="application.name" autocomplete="off" />
+                <label for="applicationName">Application Name</label>
+            </p-floatlabel>
+
+            <p-button (click)="editApplicationName = !editApplicationName"
+                icon="pi pi-{{editApplicationName ? 'check' : 'pencil'}}" [rounded]="true" [text]="true" size="small" />
+        </div>
+        <div class="tw-flex tw-justify-center tw-itmes-center tw-gap-2">
+            <p-button label="Cancel" severity="secondary" onclick="window.history.go(-1); return false;" />
+            <button pButton (click)="saveApplication()" [disabled]="!anythingOk()">Save</button>
+        </div>
+    </div>
+
+    <p-card>
+        <h2>General</h2>
+        <p-divider />
+        <div class="tw-flex tw-flex-col tw-gap-2">
+            <div class="tw-flex tw-flex-col tw-gap-4 tw-w-full tw-max-w-80">
+                <div class="tw-flex tw-tw-items-center tw-gap-1">
+                    <p-checkbox [(ngModel)]="application.multiple_processes" [binary]="true"
+                        inputId="multipleInstancesAllowed" />
+                    <label for="multipleInstancesAllowed" class="tw-ml-2">Allow running multiple instances</label>
+                </div>
+
+                <div class="tw-flex tw-tw-items-center tw-gap-1">
+                    <p-checkbox [(ngModel)]="application.allow_request_access" [binary]="true"
+                        inputId="allowRequestAccessAllowed" />
+                    <label for="allowRequestAccessAllowed" class="tw-ml-2">Allow requesting access to app</label>
+                </div>
+
+                <p-button label="Delete Application" severity="danger" (click)="showDeleteModal = !showDeleteModal" />
+
+            </div>
+            <p-divider />
+
+            <div class="tw-flex tw-flex-col tw-gap-2 tw-w-full tw-max-w-80">
+                <div class="tw-flex tw-items-center tw-gap-2">
+                    <h3 for="applicationHash">Hash</h3>
+                    <p-tag value="MD5" />
+                </div>
+
+
+                <!-- <p-checkbox [(ngModel)]="multipleHashEnabled" label="Enable multiple hashes" name="multipleHashEnabled"
+                    [binary]="true" />
+
+
+                <p-chips *ngIf="multipleHashEnabled" [(ngModel)]="multiple_hashes"
+                    [ngClass]="{'ng-invalid ng-dirty': !areValidHash(multiple_hashes)}" />
+                <input *ngIf="!multipleHashEnabled" [ngClass]="{'ng-invalid ng-dirty' : !isValidHash(hash)}" type="text"
+                    pInputText [(ngModel)]="hash" /> -->
+
+
+                <!-- <p-checkbox [(ngModel)]="application.check_hash" label="Check hash" name="checkHash" [binary]="true" /> -->
+
+                <div class="tw-flex tw-tw-items-center tw-gap-1">
+                    <p-checkbox [(ngModel)]="application.check_hash" [binary]="true" inputId="enableHashCheck" />
+                    <label for="enableHashCheck" class="tw-ml-2">Check hash</label>
+                </div>
+
+
+                <!-- <p-chips [disabled]="!application.check_hash" [(ngModel)]="application.hash" [ngClass]="{'ng-invalid ng-dirty': !areValidHash(application.hash)}" /> -->
+
+                <p-inputgroup>
+                    <input [(ngModel)]="addHashString" pInputText placeholder="9c82902e6be80e1a30cc010af9574082" />
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-plus" severity="secondary" variant="text" (click)="addHash(addHashString)"
+                            [disabled]="addHashString==''" />
+                    </p-inputgroup-addon>
+                </p-inputgroup>
+
+
+
+
+                <div class="tw-flex tw-gap-2 tw-flex-wrap">
+                    <p-chip *ngFor="let hash of application.hash" [label]="hash" [removable]="true"
+                        (onRemove)="removeHashFromObject(hash)" />
+                </div>
+
+
+
+
+            </div>
+            <p-divider />
+
+            <div class="tw-flex tw-flex-col tw-gap-2 tw-w-full tw-max-w-80">
+                <div class="tw-flex tw-items-center tw-gap-2">
+                    <h3 for="applicationHash">Path</h3>
+                    <p-tag value="Win & Unix" />
+                </div>
+
+                <!-- <p-checkbox [(ngModel)]="multiplePathEnabled" label="Enable multiple paths" name="multiplePathEnabled"
+                    [binary]="true" />
+                <p-chips *ngIf="multiplePathEnabled" [(ngModel)]="multiple_paths"
+                    [ngClass]="{'ng-invalid ng-dirty': !areValidPaths(multiple_paths)}" />
+                <input *ngIf="!multiplePathEnabled" [ngClass]="{'ng-invalid ng-dirty' : !isValidPath(path)}" type="text"
+                    pInputText [(ngModel)]="path" /> -->
+
+                <p-inputgroup>
+                    <input [(ngModel)]="addPathString" pInputText placeholder="C:\Keybridge\keybridge.exe" />
+                    <p-inputgroup-addon>
+                        <p-button icon="pi pi-plus" severity="secondary" variant="text" (click)="addPath(addPathString)"
+                            [disabled]="addPathString==''" />
+                    </p-inputgroup-addon>
+                </p-inputgroup>
+
+                <div class="tw-flex tw-gap-2 tw-flex-wrap">
+                    <p-chip *ngFor="let path of application.path" [label]="path" [removable]="true"
+                        (onRemove)="removePathFromObject(path)" />
+                </div>
+
+                <!-- <p-chips [(ngModel)]="application.path" [ngClass]="{'ng-invalid ng-dirty': !areValidPaths(application.path)}" /> -->
+
+
+
+            </div>
+
+
+        </div>
+    </p-card>
+
+    <p-card *ngIf="application.id > -1">
+        <div class="tw-flex tw-flex-col tw-gap-2">
+            <div class="tw-flex tw-items-center tw-justify-between tw-gap-2">
+                <h2>Config</h2>
+                <!-- <p-button icon="pi pi-plus" size="small" [rounded]="true" (click)="showConfigModal = !showConfigModal" /> -->
+                <div class="tw-flex tw-items-center tw-gap-2">
+                    <p-button *ngIf="!applicationOptionChanged() && !editApplicationOptionGroup" icon="pi pi-plus"
+                        aria-label="Save" (click)="newApplicationOptionGroup()" [rounded]="true" [text]="true" />
+
+
+
+                    <p-select [disabled]="applicationOptionChanged() || editApplicationOptionGroup"
+                        [loading]="loadingApplicationOptionGroups" [options]="applicationOptionGroups"
+                        [(ngModel)]="selectedApplicationOptionGroup" optionLabel="name"
+                        placeholder="Select a option group" (onChange)="onApplicationOptionGroupChange($event)" />
+                </div>
+            </div>
+
+            <!-- <p-skeleton width="12rem" height="2rem" /> -->
+
+            <p-divider [align]="'center'">General</p-divider>
+
+            <div *ngIf="!loadingApplicationOptionGroups && selectedApplicationOptionGroup"
+                class="tw-flex tw-flex-col tw-gap-2">
+
+                <div class="tw-flex tw-gap-2 tw-items-center tw-justify-between">
+                    <h3 *ngIf="!editApplicationOptionGroup" class="tw-m-2">{{selectedApplicationOptionGroup.name}}</h3>
+                    <p-floatlabel *ngIf="editApplicationOptionGroup" variant="in">
+                        <input pInputText id="applicationOptionGroupName"
+                            [(ngModel)]="selectedApplicationOptionGroup.name" autocomplete="off" />
+                        <label for="applicationOptionGroupName">Group Name</label>
+                    </p-floatlabel>
+
+                    <div class="tw-flex">
+
+                        <div *ngIf="!editApplicationOptionGroup" class="tw-flex tw items-center">
+                            <p-button (click)="editApplicationOptionGroup = !editApplicationOptionGroup"
+                                icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" />
+                            <p-button *ngIf="selectedApplicationOptionGroup" icon="pi pi-trash"
+                                aria-label="Delete Group" (click)="deleteApplicationOptionGroup()" [rounded]="true"
+                                [text]="true" severity="danger" size="small" />
+
+
+                        </div>
+
+                        <div *ngIf="editApplicationOptionGroup" class="tw-flex tw items-center">
+                            <p-button (click)="cancelApplicationOptionGroupChanges()" icon="pi pi-times"
+                                [rounded]="true" [text]="true" severity="danger" />
+                            <p-button (click)="saveApplicationOptionGroupChanges()" icon="pi pi-save" [rounded]="true"
+                                [text]="true" [disabled]="!applicationOptionGroupChanged()" />
+                        </div>
+
+                    </div>
+
+                    <!-- <p-button (click)="editApplicationOptionGroup = !editApplicationOptionGroup" icon="pi pi-{{editApplicationOptionGroup ? 'save' : 'pencil'}}" [rounded]="true" [text]="true" size="small" /> -->
+
+                </div>
+                <p *ngIf="!editApplicationOptionGroup"
+                    [ngClass]="{'tw-opacity-80' : !selectedApplicationOptionGroup.description}" class="tw-m-2">
+                    {{selectedApplicationOptionGroup.description == '' ? "There is no description yet" :
+                    selectedApplicationOptionGroup.description}}</p>
+                <p-floatlabel *ngIf="editApplicationOptionGroup" variant="in">
+                    <textarea pTextarea id="applicationOptionGroupDescription"
+                        [(ngModel)]="selectedApplicationOptionGroup.description" rows="5" cols="30" style="resize: none"
+                        class="h-full"></textarea>
+                    <label for="applicationOptionGroupDescription">Description</label>
+                </p-floatlabel>
+
+
+            </div>
+
+            <p-divider [align]="'center'">Items</p-divider>
+
+            <div
+                *ngIf="applicationOptionGroups.length > 1 || applicationOptionGroups.length == 1 && applicationOptionGroups[0].id >= 0">
+
+                <p-table #optionGroupTable [loading]="loadingApplicationOptionGroupItems" [scrollable]="true"
+                    scrollHeight="400px" *ngIf="applicationOptionGroupItems" [value]="applicationOptionGroupItems"
+                    dataKey="id" editMode="row">
+                    <ng-template #header>
+                        <tr>
+                            <th class="tw-w-2/6">Name</th>
+                            <th class="tw-w-3/6">Value</th>
+                            <th class="tw-w-3/6">Sensitive</th>
+                            <th class="tw-w-1/6"></th>
+                        </tr>
+                    </ng-template>
+                    <ng-template #body let-item let-editing="editing" let-ri="rowIndex">
+                        <tr [pEditableRow]="item">
+                            <td>
+                                <p-cellEditor>
+                                    <ng-template #input>
+                                        <input pInputText type="text" [(ngModel)]="item.name" required />
+                                    </ng-template>
+                                    <ng-template #output>
+                                        {{ item.name }}
+                                    </ng-template>
+                                </p-cellEditor>
+                            </td>
+                            <td>
+                                <p-cellEditor>
+                                    <ng-template #input>
+                                        <input pInputText type="text" [(ngModel)]="item.value" required />
+                                    </ng-template>
+                                    <ng-template #output>
+                                        {{ item.value }}
+                                    </ng-template>
+                                </p-cellEditor>
+                            </td>
+                            <td>
+                                <p-cellEditor>
+                                    <ng-template #input>
+                                        <!-- <p-toggleswitch (onChange)="toggleSensitiveDialog(item)" [(ngModel)]="item.sensitive" [disabled]="item.id != -1" /> -->
+                                        <p-button [disabled]="item.id > -1" (click)="toggleSensitiveDialog(item)" size="small" label="Show" />
+                                        <p-dialog (onHide)="closeSensitiveDialogVisible(item)" *ngIf="selectedApplicationOptionGroupItem" header="Edit Sensitive Part" [modal]="true" [(visible)]="sensitiveDialogVisible" styleClass="tw-w-80">
+                                            <div class="tw-flex tw-flex-col tw-gap-2">
+
+                                                <div class="tw-flex tw-items-center tw-gap-2">
+                                                    <p-checkbox [(ngModel)]="item.sensitive" [binary]="true" inputId="sensitive" label="Sensitive" name="sensitive" />
+                                                    <label for="sensitive">Sensitive</label>
+                                                </div>
+                                                <div class="tw-flex tw-items-center tw-gap-2 tw-opacity-50">
+                                                    <i class="pi pi-info"></i>
+                                                    <p *ngIf="item.value" class="tw-text-xs">Click on an part of the value to mark it as sensitive. The marked part won't be showed after</p>
+                                                    <p *ngIf="!item.value" class="tw-text-xs">First enter a value to apply sensitive marks</p>
+                                                </div>
+                                                <ul [ngClass]="{'tw-opacity-50': !item.sensitive}" class="tw-list-none">
+                                                    <li (click)="selectSensitivePart(i)" [ngClass]="{'tw-cursor-pointer':item.sensitive, 'tw-font-bold tw-bg-primary':checkSensitivePart(i)}" class="tw-inline tw-mx-0 tw-cursor-not-allowed" *ngFor="let char of selectedApplicationOptionGroupItem.value.split(''); let i = index">{{char}}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="tw-flex tw-justify-end tw-gap-2">
+                                                <p-button [disabled]="!item.sensitive || item.sensitive && selectedSensitivePart.length == 0" label="Ok" (click)="toggleSensitiveDialog(item)" />
+                                            </div>
+                                        </p-dialog>
+                                    </ng-template>
+                                    <ng-template #output>
+                                        <i *ngIf="item.sensitive" class="pi pi-check text-success"></i>
+                                        <i *ngIf="!item.sensitive" class="pi pi-times text-danger"></i>                    
+                                        <!-- <p-tag [value]="item.sensitive ? 'Yes' : 'No'" [severity]="item.sensitive ? 'danger' : 'success'"></p-tag> -->
+                                    </ng-template>
+                                </p-cellEditor>
+                            </td>
+                            <td class="tw-flex tw-flex-row-reverse">
+                                <div class="flex items-center justify-center gap-2 tw-flex-none">
+                                    <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow
+                                        icon="pi pi-pencil" size="small" (click)="onRowEditInit(item)" text
+                                        rounded></button>
+                                    <button *ngIf="!editing || item.id < 0" pButton pRipple type="button"
+                                        icon="pi pi-trash" (click)="onRowDelete(item)" text rounded severity="danger"
+                                        size="small"></button>
+                                    <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow
+                                        icon="pi pi-save" (click)="onRowEditSave(item)" text rounded severity="success"
+                                        size="small"></button>
+                                    <button *ngIf="editing && item.id > 0" pButton pRipple type="button"
+                                        pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(item, ri)" text
+                                        rounded severity="danger" size="small"></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template #footer>
+                        <p-button [disabled]="selectedApplicationOptionGroupItem?.id == -1" (click)="newApplicationOptionGroupItem()" size="small" icon="pi pi-plus"
+                            [rounded]="true" [text]="true"></p-button>
+                    </ng-template>
+
+                    <ng-template #emptymessage>
+                        <tr>
+                            <td colspan="3">No items found. Please <span>add</span> one</td>
+                        </tr>
+                    </ng-template>
+
+                </p-table>
+
+
+                <!-- <p-message size="small" icon="pi pi-info" severity="secondary" variant="simple">
+                    <ng-container *ngIf="loadingApplicationOptionGroupItems; else loadedContent">
+                        <div class="tw-flex tw-gap-2 tw-items-center">
+                            Loading...
+                            <p-progress-spinner strokeWidth="4" fill="transparent" animationDuration=".5s"
+                                [style]="{ width: '1rem', height: '1rem' }"></p-progress-spinner>
+                        </div>
+                    </ng-container>
+                    <ng-template #loadedContent>
+                        <ng-container *ngIf="applicationOptionGroupItems.length === 0; else editHint">
+                            There are no items. Please add one.
+                            <p-button (click)="newApplicationOptionGroupItem()" icon="pi pi-plus" [rounded]="true" [text]="true"></p-button>
+                        </ng-container>
+                        <ng-template #editHint>
+                            <p>Please click into the cell to change its value.</p>
+                        </ng-template>
+                    </ng-template>
+                </p-message> -->
+
+
+
+            </div>
+
+            <p-divider [align]="'center'">Permissions</p-divider>
+
+            <div *ngIf="applicationOptionGroups.length > 1 || applicationOptionGroups.length == 1 && applicationOptionGroups[0].id >=0"
+                class="tw-flex tw-flex-col tw-gap-2">
+                <div class="tw-flex tw-gap-2">
+                    <!-- Static Select Dropdown -->
+                    <p-select [options]="authSources" [filter]="true" [(ngModel)]="selectedAuthSource"
+                        optionLabel="name" placeholder="Select authentication server" class="tw-w-2/6"
+                        [disabled]="selectedLdapObject != undefined" [loading]="loadingAuthSources"
+                        [showClear]="true"></p-select>
+                    <!-- <p-select [options]="authSources" [filter]="true" [(ngModel)]="selectedAuthSource" optionLabel="name" placeholder="Select authentication server" class="tw-w-2/6" [disabled]="selectedLdapObject != undefined" [loading]="loadingAuthSources" [showClear]="true" (onFocus)="onFocusAuthServer($event)"></p-select> -->
+
+                    <!-- LDAP Search Dropdown -->
+                    <p-select [loading]="loadingLdapObjects" [options]="ldapObjects"
+                        placeholder="Search for user or group" [(ngModel)]="selectedLdapObject" [optionLabel]="'name'"
+                        [editable]="true" [checkmark]="true" [showClear]="true" class="tw-w-4/6"
+                        [disabled]="!selectedAuthSource" (onChange)="onSearchInput($event)">
+
+                        <!-- Template for Selected Item -->
+                        <!-- <ng-template #selectedItem let-selectedOption>
+                            <div class="tw-flex tw-items-center tw-gap-3">
+                                <i
+                                    class="pi"
+                                    [ngClass]="{
+                                        'pi-users': selectedOption.type === 'group',
+                                        'pi-user': selectedOption.type === 'user'
+                                    }"
+                                ></i>
+                                <p class="tw-m-0">{{ selectedOption.name }} <span *ngIf="selectedOption.type == 'user'">({{ selectedOption.id }})</span></p>
+                            </div>
+                        </ng-template> -->
+
+                        <!-- Template for Dropdown Items -->
+                        <ng-template let-item pTemplate="item">
+                            <div class="tw-flex tw-items-center tw-gap-3">
+                                <i class="pi" [ngClass]="{
+                                        'pi-users': item.type === 'group',
+                                        'pi-user': item.type === 'user'
+                                    }"></i>
+                                <p class="tw-m-0">{{ item.name }} <span *ngIf="item.type == 'user'">({{ item.id
+                                        }})</span>
+                                </p>
+                            </div>
+                        </ng-template>
+                    </p-select>
+                    <!-- <p *ngIf="selectedLdapObject" (click)="tempo()">{{selectedLdapObject.name}}</p> -->
+
+                    <!-- Add Button -->
+                    <p-button *ngIf="selectedApplicationOptionGroup && selectedLdapObject && selectedAuthSource"
+                        icon="pi pi-plus" aria-label="Add"
+                        [disabled]="!selectedLdapObject || selectedLdapObject.name == undefined || loadingAddAccess"
+                        (click)="addAccess(selectedApplicationOptionGroup, selectedLdapObject, selectedAuthSource)"></p-button>
+                </div>
+
+
+
+                <!-- <div class="tw-flex tw-gap-2 tw-flex-wrap">
+                    <p-chip *ngFor="let access of accessRights" [label]="access.name" [removable]="true"
+                        (onRemove)="removeAccessRight(access)" />
+                </div> -->
+
+                <div *ngFor="let access_area of groupedAccessRights" class="tw-flex tw-flex-col">
+                    <h3>{{access_area.name}}</h3>
+                    <div class="tw-flex tw-gap-2 tw-flex-wrap">
+                        <p-chip *ngFor="let access of access_area.rights"
+                            [icon]="access.object_type === 'group' ? 'pi pi-users' : 'pi pi-user'" [label]="access.name"
+                            [removable]="true" (onRemove)="removeAccessRight(access)" />
+                    </div>
+                </div>
+
+
+
+
+
+
+            </div>
+
+        </div>
+    </p-card>
+
+
+
+
+
+</div>
+
+
+
+<p-toast></p-toast>
+<p-dialog *ngIf="application" [header]="'Delete '+ application.name" [modal]="true" [(visible)]="showDeleteModal">
+
+    <div class="tw-flex tw-flex-col tw-gap-2">
+        <p class="tw-max-w-prose">If you are going to delete the application, all the data related to it will also be
+            deleted. That means the follwoing data will be removed:</p>
+        <ul>
+            <li>Application</li>
+            <li>Hashes</li>
+            <li>Path</li>
+            <li>Icons</li>
+            <li>Config groups</li>
+            <li>Config blocks</li>
+        </ul>
+    </div>
+    <div class="tw-flex tw-justify-end tw-gap-2">
+        <p-button label="Cancel" severity="secondary" (click)="showDeleteModal = !showDeleteModal" />
+        <p-button label="Delete" severity="danger" (click)="deleteApplication(application)" />
+    </div>
+</p-dialog>
+
+<p-dialog [header]="'edit config'" [modal]="true" [(visible)]="showConfigModal">
+
+    <div class="tw-flex tw-flex-col tw-gap-2">
+        <p class="tw-max-w-prose">If you are going to delete the application, all the data related to it will also be
+            deleted. That means the follwoing data will be removed:</p>
+        <ul>
+            <li>Application</li>
+            <li>Hashes</li>
+            <li>Path</li>
+            <li>Icons</li>
+            <li>Config groups</li>
+            <li>Config blocks</li>
+        </ul>
+    </div>
+    <div class="tw-flex tw-justify-end tw-gap-2">
+        <p-button label="Cancel" severity="secondary" (click)="showConfigModal = !showConfigModal" />
+    </div>
+</p-dialog>

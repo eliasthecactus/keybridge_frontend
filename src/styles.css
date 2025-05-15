@@ -1,0 +1,7 @@
+@import "primeicons/primeicons.css";
+@tailwind components;
+@tailwind utilities;
+
+* {
+    font-family:'Inter', sans-serif;
+}
